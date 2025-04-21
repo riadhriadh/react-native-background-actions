@@ -29,6 +29,7 @@ React Native background service library for running **background tasks forever i
 - [Maintainers](#maintainers)
 - [Acknowledgments](#acknowledgments)
 - [License](#license)
+- [React Native Background Location Tracker](#react-native-background-location-tracker)
 
 ## React Native / Android / iOS compatibility
 To use this module you need to ensure you are using the correct version of React Native. If you are using an Android (targetSdkVersion) version lower than 31 (introduced in React Native 0.68.0) you will need to upgrade before attempting to use `react-native-background-actions`'s latest version.
@@ -209,3 +210,77 @@ await BackgroundService.start(veryIntensiveTask, options);
 ## License
 
 The library is released under the MIT license. For more information see [`LICENSE`](/LICENSE).
+
+## React Native Background Location Tracker
+
+Module natif Android pour le suivi de localisation en arrière-plan et premier plan avec notification persistante.
+
+### Fonctionnalités
+
+- Suivi GPS continu même lorsque l'application est en arrière-plan
+- Notification persistante indiquant que le tracking est actif
+- Envoi des données de localisation à un serveur distant
+- Fonctionne même après le kill de l'application
+
+### Installation
+
+1. Ajoutez le module à votre projet React Native :
+```bash
+npm install --save ./BackgroundLocation.js
+```
+
+2. Ajoutez les permissions dans `AndroidManifest.xml` :
+```xml
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+```
+
+### Utilisation
+
+```javascript
+import BackgroundLocation from './BackgroundLocation';
+import { PermissionsAndroid } from 'react-native';
+
+// Demander les permissions
+const requestLocationPermission = async () => {
+  try {
+    const granted = await PermissionsAndroid.requestMultiple(
+      BackgroundLocation.PERMISSIONS
+    );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  } catch (err) {
+    console.warn(err);
+    return false;
+  }
+};
+
+// Démarrer le tracking
+const startTracking = async () => {
+  const hasPermission = await requestLocationPermission();
+  if (hasPermission) {
+    BackgroundLocation.startTracking('https://votre-serveur.com/api/location');
+  }
+};
+
+// Arrêter le tracking
+const stopTracking = () => {
+  BackgroundLocation.stopTracking();
+};
+```
+
+### Configuration serveur
+
+Votre serveur doit accepter les requêtes GET avec les paramètres :
+- `lat`: Latitude
+- `lng`: Longitude
+
+Exemple d'URL appelée :
+`https://votre-serveur.com/api/location?lat=48.8566&lng=2.3522`
+
+### Notes importantes
+
+- Le service continue de fonctionner même si l'application est tuée
+- La notification ne peut pas être supprimée par l'utilisateur
+- La consommation batterie peut être importante selon l'intervalle de mise à jour
+- Testé sur Android 8+ (Oreo et versions ultérieures)
